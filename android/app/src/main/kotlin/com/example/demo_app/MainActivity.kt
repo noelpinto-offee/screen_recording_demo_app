@@ -27,12 +27,8 @@ class MainActivity : FlutterActivity() {
         MethodChannel(flutterEngine.dartExecutor.binaryMessenger, CHANNEL).setMethodCallHandler { call, result ->
             when (call.method) {
                 "startRecording" -> {
-                    if (checkPermissions()) {
-                        val intent = Intent(this, ScreenCapturePermissionActivity::class.java)
-                        startActivityForResult(intent, SCREEN_CAPTURE_REQUEST_CODE)
-                    } else {
-                        requestPermissions()
-                    }
+                    val intent = Intent(this, ScreenCapturePermissionActivity::class.java)
+                    startActivityForResult(intent, SCREEN_CAPTURE_REQUEST_CODE)
                     result.success("Started")
                 }
                 "stopRecording" -> {

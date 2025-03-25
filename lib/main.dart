@@ -32,14 +32,6 @@ class MyApp extends StatelessWidget {
                   onPressed: () => RecordingController.to.startRecording(),
                 ),
                 ElevatedButton(
-                  child: Text("Pause Recording"),
-                  onPressed: () => RecordingController.to.pauseRecording(),
-                ),
-                ElevatedButton(
-                  child: Text("Resume Recording"),
-                  onPressed: () => RecordingController.to.resumeRecording(),
-                ),
-                ElevatedButton(
                   child: Text("Stop Recording"),
                   onPressed: () => RecordingController.to.stopRecording(),
                 )
