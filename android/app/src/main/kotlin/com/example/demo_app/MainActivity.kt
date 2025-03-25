@@ -1,11 +1,13 @@
 package com.example.demo_app
 
 import android.Manifest
+import android.app.Activity
 import android.content.Context
 import android.content.Intent
 import android.os.Bundle
 import android.os.Environment
 import android.widget.Toast
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import io.flutter.embedding.android.FlutterActivity
@@ -17,6 +19,7 @@ import android.net.Uri
 
 class MainActivity : FlutterActivity() {
     private val CHANNEL = "com.example.demo_app/native"
+    private val SCREEN_CAPTURE_REQUEST_CODE = 1001
 
     override fun configureFlutterEngine(flutterEngine: FlutterEngine) {
         super.configureFlutterEngine(flutterEngine)
@@ -26,26 +29,41 @@ class MainActivity : FlutterActivity() {
                 "startRecording" -> {
                     if (checkPermissions()) {
                         val intent = Intent(this, ScreenCapturePermissionActivity::class.java)
-                        startActivity(intent)
+                        startActivityForResult(intent, SCREEN_CAPTURE_REQUEST_CODE)
                     } else {
                         requestPermissions()
                     }
                     result.success("Started")
                 }
                 "stopRecording" -> {
-                    RecordingController.stop(this)
+                    val intent = Intent(this, ScreenRecordingService::class.java)
+                    stopService(intent)
                     result.success("Stopped")
                 }
                 "pauseRecording" -> {
-                    RecordingController.pause(this)
+                    val intent = Intent(this, ScreenRecordingService::class.java)
+                    intent.action = "PAUSE_RECORDING"
+                    startService(intent)
                     result.success("Paused")
                 }
                 "resumeRecording" -> {
-                    RecordingController.resume(this)
+                    val intent = Intent(this, ScreenRecordingService::class.java)
+                    intent.action = "RESUME_RECORDING"
+                    startService(intent)
                     result.success("Resumed")
                 }
                 else -> result.notImplemented()
             }
+        }
+    }
+
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        super.onActivityResult(requestCode, resultCode, data)
+        if (requestCode == SCREEN_CAPTURE_REQUEST_CODE && resultCode == Activity.RESULT_OK && data != null) {
+            val serviceIntent = Intent(this, ScreenRecordingService::class.java)
+            serviceIntent.putExtra("resultCode", resultCode)
+            serviceIntent.putExtra("data", data)
+            startService(serviceIntent)
         }
     }
 
@@ -60,9 +78,7 @@ class MainActivity : FlutterActivity() {
             !Environment.isExternalStorageManager()
         } else false
 
-        return permissions.all {
-            ContextCompat.checkSelfPermission(this, it) == PackageManager.PERMISSION_GRANTED
-        } && !needsManageStorage
+        return true
     }
 
     private fun requestPermissions() {
